@@ -1,0 +1,1721 @@
+
+------------------------------------------------    SET-1    -----------------------------------------------------------------------------
+
+
+
+Q1. Query all columns for all American cities in the CITY table with populations larger than 100000.
+The CountryCode for America is USA.
+
+>   select * from CITY where population>100000 and countrycode='USA';
+
+
+Q2. Query the NAME field for all American cities in the CITY table with populations larger than 120000.
+The CountryCode for America is USA.
+
+>  select NAME from CITY where population>120000 and countrycode='USA';
+
+
+Q3. Query all columns (attributes) for every row in the CITY table.
+
+>  select * from CITY;
+
+
+Q4. Query all columns for a city in CITY with the ID 1661.
+
+
+>  select * from CITY where ID=1661;
+
+
+Q5. Query all attributes of every Japanese city in the CITY table. The COUNTRYCODE for Japan is
+JPN.
+
+
+>  select * from CITY where countrycode='JPN';
+
+
+Q6. Query the names of all the Japanese cities in the CITY table. The COUNTRYCODE for Japan is
+JPN.
+
+
+>  select NAME from CITY where countrycode='JPN';
+
+
+Q7. Query a list of CITY and STATE from the STATION table
+
+
+>  select City,State from STATION;
+
+
+
+Q8. Query a list of CITY names from STATION for cities that have an even ID number. Print the results
+in any order, but exclude duplicates from the answer.
+
+
+>  select City from STATION where Id%2=0;
+
+
+Q9. Find the difference between the total number of CITY entries in the table and the number of
+distinct CITY entries in the table.
+
+
+>  select count(city)-count(distinct city) from STATION;
+
+
+Q10. Query the two cities in STATION with the shortest and longest CITY names, as well as their
+respective lengths (i.e.: number of characters in the name). If there is more than one smallest or
+largest city, choose the one that comes first when ordered alphabetically
+
+
+>  select City,length(City) from STATION order by length(City) desc,City desc limit 2 ;
+    select City,length(City) from STATION order by length(City) asc,City asc limit 2;
+
+
+Q11. Query the list of CITY names starting with vowels (i.e., a, e, i, o, or u) from STATION. Your result
+cannot contain duplicates.
+
+
+>  select distinct city from STATION where City like 'A%' or City like 'E%' or City like 'I%' or City like 'O%' or City like 'U%' ;
+
+
+
+Q12. Query the list of CITY names ending with vowels (a, e, i, o, u) from STATION. Your result cannot
+contain duplicates.
+
+
+>  select distinct city from STATION where City like '%A' or City like '%E' or City like '%I' or City like '%O' or City like '%U' ;
+
+
+Q13. Query the list of CITY names from STATION that do not start with vowels. Your result cannot
+contain duplicates.
+
+
+>  select distinct city from STATION where City not like 'A%' and City not like 'E%' and City not like 'I%' and City not like 'O%' and City not like 'U%' ;
+
+
+Q14. Query the list of CITY names from STATION that do not end with vowels. Your result cannot
+contain duplicates.
+
+
+>  select distinct city from STATION where City not like '%A' and City not like '%E' and City not like '%I' and City not like '%O' and City not like '%U' ;
+
+
+Q15. Query the list of CITY names from STATION that either do not start with vowels or do not end
+with vowels. Your result cannot contain duplicates.
+
+
+>  select distinct city from STATION where City not like '[AEIOU]%' or City not like '%[aeiou]';
+
+
+Q16. Query the list of CITY names from STATION that do not start with vowels and do not end with
+vowels. Your result cannot contain duplicates.
+
+
+>  select distinct city from STATION where City not like '[AEIOU]%' and City not like '%[aeiou]';
+
+
+Q17. Write an SQL query that reports the products that were only sold in the first quarter of 2019. That is,
+between 2019-01-01 and 2019-03-31 inclusive.
+Return the result table in any order.
+
+
+>  select s.product_id, p.product_name from sales s, product p where s.product_id = p.product_id group by s.product_id, p.product_name having min(s.sale_date) >= '2019-01-01'  and max(s.sale_date) <= '2019-03-31'
+
+
+Q18. Write an SQL query to find all the authors that viewed at least one of their own articles. Return the result table sorted by id in ascending order.
+
+
+>  select distinct author_id from Views where author_id=viewer_id order by author_id asc;
+
+
+
+Q19. Write an SQL query to find the percentage of immediate orders in the table, rounded to 2 decimal places.
+
+
+>  WITH result_table as (select (case when order_date=customer_pref_delivery_date Then 1 else 0 end) as immediate_order,RANK() OVER(partition by customer_id order by order_date) as first_order from Delivery where first_order=1)
+    select round(sum(immerdiate_order)*100/count(first_order),2) as immediate_percentage from result_table;
+
+
+Q20. Write an SQL query to find the ctr of each Ad. Round ctr to two decimal points.Return the result table ordered by ctr in descending order and by ad_id in ascending order in case of a tie
+
+
+>  
+select ad_id,
+ifnull(
+    round(
+        avg(
+            case
+                when action = "Clicked" then 1
+                when action = "Viewed" then 0
+                else null
+            end
+        ) * 100,
+    2),
+0)
+as ctr
+from Ad
+group by ad_id
+order by ctr desc, ad_id asc;
+
+
+Q21. Write an SQL query to find the team size of each of the employees.Return result table in any order
+
+
+>  WITH result as (select team_id ,count(employee_id) as team_size from Employee group by team_id)
+    select e.employee_id,t.team_size from Employee e join result t on e.team_id=t.team_id; 
+
+
+
+Q22. Write an SQL query to find the type of weather in each country for November 2019.
+
+The type of weather is:
+● Cold if the average weather_state is less than or equal 15,
+● Hot if the average weather_state is greater than or equal to 25, and
+● Warm otherwise.
+Return result table in any order
+
+
+>  With result as (select country_id,avg(weather_state) as weather_avg from weather where day between '2019-11-01' and '2019-11-30' group by country_id)
+ 
+select c.country_name,(case when w.weather_avg<= 15 then 'Cold' 
+                            when w.weather_avg>= 25 then 'Hot' 
+                            else 'Warm' 
+                       end )as weather_type from country c join result w where c.country_id = w.country_id;
+
+
+Q23. Write an SQL query to find the average selling price for each product. average_price should be rounded to 2 decimal places. Return the result table in any order.
+
+
+>  select p.product_id, round(sum(p.price * u.units)/sum(u.units), 2) as average_price from Prices p  join UnitsSold u on p.product_id = u.product_id and 
+    datediff(u.purchase_date, p.start_date) >= 0 and
+    datediff(p.end_date, u.purchase_date) >= 0
+   group by p.product_id
+
+
+
+Q24. Write an SQL query to report the first login date for each player. Return the result table in any order.
+
+
+>  with result as (select player_id ,event_date,rank() over (partition by player_id order by event_date) as first from activity) 
+     select player_id,event_date as first_login from result where first=1;
+
+
+
+Q25. Write an SQL query to report the device that is first logged in for each player. Return the result table in any order
+
+
+>  with result as (select player_id ,device_id,event_date,rank() over (partition by player_id order by event_date) as first from activity)
+    select player_id,device_id from result where first=1;
+
+
+
+Q26. Write an SQL query to get the names of products that have at least 100 units ordered in February 2020 and their amount. Return result table in any order
+
+
+>  with result as (select product_id,sum(unit) as total from orders where order_date between '2020-02-01' and '2020-02-30' group by product_id having total>=100)
+    select p.product_name,r.total as units from products p join result r where p.product_id=r.product_id; 
+
+
+
+Q27. Write an SQL query to find the users who have valid emails.
+A valid e-mail has a prefix name and a domain where:
+● The prefix name is a string that may contain letters (upper or lower case), digits, underscore
+'_', period '.', and/or dash '-'. The prefix name must start with a letter.
+● The domain is '@leetcode.com'.
+Return the result table in any order
+
+
+>  select * from Users where REGEXP_LIKE(mail, '^[a-zA-Z][a-zA-Z0-9\_\.\-]*@leetcode.com')
+
+
+
+Q28. Write an SQL query to report the customer_id and customer_name of customers who have spent at
+least $100 in each month of June and July 2020.
+Return the result table in any order.
+
+
+
+>  select o.customer_id, c.name from Customers c, Product p, Orders o where c.customer_id = o.customer_id and p.product_id = o.product_id group by o.customer_id
+having 
+(
+    sum(case when o.order_date like '2020-06%' then o.quantity*p.price else 0 end) >= 100
+    and
+    sum(case when o.order_date like '2020-07%' then o.quantity*p.price else 0 end) >= 100
+);
+
+
+
+Q29. Write an SQL query to report the distinct titles of the kid-friendly movies streamed in June 2020.
+Return the result table in any order
+
+
+>  with result as (select content_id,title from content where Kids_content='Y' and content_type='Movies')
+    select r.title from result r join tvprogram t on r.content_id=t.content_id where t.program_date like '2020-06%';
+
+
+
+Q30. Write an SQL query to find the npv of each query of the Queries table.Return the result table in any order.
+
+
+>  select q.id, q.year, ifnull(n.npv,0) as npv from queries as q left join npv as n on (q.id, q.year) = (n.id, n.year)
+
+
+Q31. Write an SQL query to find the npv of each query of the Queries table.
+Return the result table in any order
+
+
+>  select q.id, q.year, ifnull(n.npv,0) as npv from queries as q left join npv as n on (q.id, q.year) = (n.id, n.year)
+
+
+Q32. Write an SQL query to show the unique ID of each user, If a user does not have a unique ID replace just show null.
+Return the result table in any order
+
+
+>  select unique_id,name from (
+   select e.id,e.name,eu.unique_id
+   from Employees as e LEFT JOIN EmployeeUNI as eu
+   ON e.id = eu.id)
+
+
+Q33. Write an SQL query to report the distance travelled by each user.
+Return the result table ordered by travelled_distance in descending order, if two or more users
+travelled the same distance, order them by their name in ascending order
+
+
+>select name, sum(ifnull(distance, 0)) as travelled_distance from rides r right join users u on r.user_id = u.id
+group by name order by 2 desc,1 asc;
+
+
+Q34. Write an SQL query to get the names of products that have at least 100 units ordered in February 2020 and their amount.
+
+>  select  prod.product_name, prod.unit from
+   (select p.product_name, sum(o.unit) as unit from Products p  left join Orders o on p.product_id = o.product_id and 
+        datediff(order_date, '2020=02-01') >= 0 and
+        datediff('2020-03-01', order_date) > 0 
+    group by p.product_id) prod where prod.unit >= 100
+
+
+Q35. Write an SQL query to:
+●	Find the name of the user who has rated the greatest number of movies. In case of a tie, return the lexicographically smaller user name.
+●	Find the movie name with the highest average rating in February 2020. In case of a tie, return the lexicographically smaller movie name.
+
+
+> select user_name as results from
+(
+select a.name as user_name, COUNT(*) as counts from Movie_Rating as b
+    join Users as a
+    on a.user_id = b.user_id
+    GROUP BY b.user_id
+    ORDER BY counts DESC, user_name ASC LIMIT 1
+) first_query
+UNION
+select movie_name as results from
+(
+select c.title as movie_name, AVG(d.rating) as rate from Movie_Rating as d
+    join Movies as c
+    on c.movie_id = d.movie_id
+    where substr(d.created_at, 1, 7) = '2020-02'
+    GROUP BY d.movie_id
+    ORDER BY rate DESC, movie_name ASC LIMIT 1
+) second_query;
+
+
+Q36. Write an SQL query to report the distance travelled by each user.
+Return the result table ordered by travelled_distance in descending order, if two or more users travelled the same distance, order them by their name in ascending order.
+ 
+
+>  select name, sum(ifnull(distance, 0)) as travelled_distance from rides r right join users u on r.user_id = u.id
+   group by nameorder by 2 desc,1 asc;
+
+
+Q37. Write an SQL query to show the unique ID of each user, If a user does not have a unique ID replace just show null.
+Return the result table in any order.
+
+
+>  select unique_id,name from (
+   select e.id,e.name,eu.unique_id
+   from Employees as e LEFT JOIN EmployeeUNI as eu
+   ON e.id = eu.id)
+
+
+Q38. Write an SQL query to ﬁnd the id and the name of all students who are enrolled in departments that no longer exist.
+
+
+>   select id,name from Students where department_id not in (select id from Departments);
+
+
+Q39. Write an SQL query to report the number of calls and the total call duration between each pair of distinct persons (person1, person2) where person1 < person2.
+Return the result table in any order.
+
+>  WITH caller as (
+    select from_id as person1, to_id as person2, duration
+    from Calls
+    UNION ALL
+    select to_id as person1, from_id as person2, duration
+    from Calls
+),
+
+unique_caller as (
+    select person1, person2, duration
+    from caller
+    where person1 < person2
+)
+
+select
+    person1, person2, count(*) as call_count, sum(duration) as total_duration
+from unique_caller
+group by person1, person2;
+
+
+Q40. Write an SQL query to ﬁnd the average selling price for each product. average_price should be rounded to 2 decimal places.
+Return the result table in any order.
+The query result format is in the following example.
+
+
+>  select p.product_id, round(sum(p.price * u.units)/sum(u.units), 2) as average_price from Prices p  join UnitsSold u on p.product_id = u.product_id and 
+    datediff(u.purchase_date, p.start_date) >= 0 and
+    datediff(p.end_date, u.purchase_date) >= 0
+   group by p.product_id;
+
+
+Q41. Write an SQL query to report the number of cubic feet of volume the inventory occupies in each warehouse.
+Return the result table in any order.
+
+
+>  select name as warehouse_name, sum(units * vol) as volume from Warehouse w join (select product_id, Width*Length*Height as vol from Products) p on w.product_id = p.product_id group by name;
+
+
+Q42. Write an SQL query to report the difference between the number of apples and oranges sold each day. Return the result table ordered by sale_date.
+
+
+>  select date(sale_date) as sale_date, sum(case when fruit = 'apples' then sold_num 
+                                                when fruit = 'oranges' then -sold_num 
+                                            end) as diff from Sales group by 1 order by 1;
+
+
+
+Q43. Write an SQL query to report the fraction of players that logged in again on the day after the day they ﬁrst logged in, rounded to 2 decimal places.
+    In other words, you need to count the number of players that logged in for at least two consecutive days starting from their ﬁrst login date, then divide that number by the total number of players 
+
+
+>  WITH CTE as ( select player_id, min(event_date) as event_start_date from Activity group by player_id )
+
+   select round((count(distinct c.player_id) / (select count(distinct player_id) from activity)),2)as fraction from CTE c JOIN Activity a on c.player_id = a.player_id
+   and datediff(c.event_start_date, a.event_date) = -1
+
+
+Q44. Write an SQL query to report the managers with at least ﬁve direct reports. Return the result table in any order.
+
+
+> select Name from Employee as t1  join (select ManagerId from Employee group by ManagerId having count(ManagerId) >= 5) as t2 on t1.Id = t2.ManagerId
+
+
+Q45. Write an SQL query to report the respective department name and number of students majoring in each department for all departments in the Department table (even ones with no current students). 
+     Return the result table ordered by student_number in descending order. In case of a tie, order them by dept_name alphabetically.
+
+
+>  select a.dept_name,coalesce(count(student_id), 0) student_number from department a left join student b on  a.dept_id = b.dept_id
+   group by a.dept_name order by student_number desc, a.dept_name asc;
+
+
+Q46. Write an SQL query to report the customer ids from the Customer table that bought all the products in the Product table.
+Return the result table in any order.
+
+
+>  select distinct customer_id from 
+      (
+        select customer_id, count(distinct product_key) as product_count
+            from Customer
+            group by customer_id
+    ) as customer_product_counts
+    join (
+        select count(distinct product_key) as product_count from Product
+    ) as product_counts
+    on customer_product_counts.product_count = product_counts.product_count;
+
+Q47. Write an SQL query that reports the most experienced employees in each project. In case of a tie, report all employees with the maximum number of experience years.
+Return the result table in any order.
+
+
+> select project_id, employee_id from Project join Employee using (employee_id) where (project_id, experience_years) in 
+   (
+    select project_id, max(experience_years)
+    from Project
+    join Employee
+    using (employee_id)
+    group by project_id
+   )
+
+
+Q48. Write an SQL query that reports the books that have sold less than 10 copies in the last year, excluding books that have been available for less than one month from today. Assume today is 2019-06-23.
+Return the result table in any order.
+
+
+>  select book_id, name from books where book_id not in 
+   (
+    select book_id 
+    from orders 
+    where (dispatch_date between date_sub('2019-06-23',interval 1 year) and '2019-06-23') 
+    group by (book_id) 
+    having sum(quantity) >= 10
+    ) and available_from < date_sub('2019-06-23', interval 1 month)
+
+
+Q49. Write a SQL query to ﬁnd the highest grade with its corresponding course for each student. In case of a tie, you should ﬁnd the course with the smallest course_id.
+Return the result table ordered by student_id in ascending order. 
+
+>  select student_id, min(course_id) as course_id, grade from Enrollments where (student_id, grade) in  (select student_id, max(grade) from Enrollments group by student_id) group by student_id, grade order by student_id asc
+
+
+Q50. Write an SQL query to ﬁnd the winner in each group. Return the result table in any order.
+
+
+>  select group_id, player_id from ( select p.group_id, ps.player_id, sum(ps.score) as score from Players p,
+	    (
+            select first_player as player_id, first_score as score
+            from Matches
+            union all
+            select second_player, second_score
+            from Matches
+	    ) ps
+	where p.player_id = ps.player_id group by ps.player_id order by group_id, score desc, player_id group by group_id;
+
+
+
+
+
+------------------------------------------------    SET-2    -----------------------------------------------------------------------------
+
+
+
+
+
+
+Q51. Write an SQL query to report the name, population, and area of the big countries. Return the result table in any order
+      
+A country is big if:
+ - it has an area of at least three million (i.e., 3000000 km2), or
+ - it has a population of at least twenty-five million (i.e., 25000000).
+
+
+>  select name,population,area from World where population>=25000000 or area>=3000000;
+
+
+Q52. Write an SQL query to report the names of the customer that are not referred by the customer with id= 2.
+
+
+> select name from Customer where referee_id != 2;
+
+
+Q53. Write an SQL query to report all customers who never order anything.Return the result table in any order.
+
+
+>  select name as Customers from Customers where id not in (select customerId from Orders)  
+
+
+Q54. Write an SQL query to find the team size of each of the employees.Return result table in any order.
+
+
+>  WITH result as (select team_id ,count(employee_id) as team_size from Employee group by team_id)
+    select e.employee_id,t.team_size from Employee e join result t on e.team_id=t.team_id; 
+
+
+Q55. A telecommunications company wants to invest in new countries. The company intends to invest in
+the countries where the average call duration of the calls in this country is strictly greater than the
+global average call duration.
+Write an SQL query to find the countries where this company can invest.
+Return the result table in any order
+
+
+> select c.name as country from Person p inner join Country c on left (p.phone_number,3) = c.country_code inner join (select caller_id as id, duration 
+  from Calls 
+  union all 
+  select callee_id as id, duration from Calls) phn on p.id = phn.id group by country having avg(duration) > (select avg(duration) from Calls)
+
+
+Q56. Write an SQL query to report the device that is first logged in for each player.Return the result table in any order
+
+
+>  with result as (select player_id ,device_id,event_date,rank() over (partition by player_id order by event_date) as first from activity)
+    select player_id,device_id from result where first=1;
+
+
+Q57. Write an SQL query to find the customer_number for the customer who has placed the largest number of orders
+
+
+>  select customer_number from
+ (select customer_number, count(order_number) order_count 
+  from orders group by customer_number) a 
+order by order_count desc limit 1;
+
+
+Q58. Write an SQL query to report all the consecutive available seats in the cinema.
+Return the result table ordered by seat_id in ascending order.
+
+
+>  select DISTINCT t1.seat_id from cinema as t1 JOIN cinema as t2 on abs(t1.seat_id - t2.seat_id) = 1
+  and t1.free = 1 and t2.free = 1 ORDER BY 1
+
+
+Q59. Write an SQL query to report the names of all the salespersons who did not have any orders related to the company with the name "RED".
+    Return the result table in any order.
+
+
+>  select name from salesperson where sales_id not in 
+  (
+    select s.sales_id from orders o
+    INNER JOIN salesperson s ON o.sales_id = s.sales_id
+    INNER JOIN company c ON o.com_id = c.com_id
+    where c.name = 'RED'
+  );
+
+  
+Q60. Write an SQL query to report for every three line segments whether they can form a triangle.
+   Return the result table in any order.
+
+
+>  select x,y,z,IF(x + y > z and y + z > x and z + x > y, 'Yes', 'No') triangle from triangle;
+
+
+Q61. Write an SQL query to report the shortest distance between any two points from the Point table.
+
+
+>  select min(abs(p1.x -  p2.x)) shortest from point p1, point p2 where p1.x <> p2.x;
+
+
+Q62. Write a SQL query for a report that provides the pairs (actor_id, director_id) where the actor has cooperated with the director at least three times.
+     Return the result table in any order
+
+
+>  select actor_id, director_id from ActorDirector GROUP BY actor_id, director_id HAVING COUNT(*) >= 3;
+
+
+Q63. Write an SQL query that reports the product_name, year, and price for each sale_id in the Sales table.
+    Return the resulting table in any order
+
+
+>  select p.product_name, s.year, s.price from Product p join Sales s on s.product_id = p.product_id;
+
+
+Q64. Write an SQL query that reports the average experience years of all the employees for each project,rounded to 2 digits.
+    Return the result table in any order.
+
+
+>  select project_id , round(avg(experience_years), 2) as average_years from project as p left join employee as e on p.employee_id = e.employee_id group by project_id
+
+
+Q65. Write an SQL query that reports the best seller by total sales price, If there is a tie, report them all.
+    Return the result table in any order.
+
+
+>  select a.seller_id from 
+    (
+      select seller_id, sum(price) as sum from Sales group by seller_id
+    ) a 
+  where a.sum = (select max(b.sum)from(select seller_id, sum(price) as sum from Sales group by seller_id)b )
+
+
+Q66. Write an SQL query that reports the buyers who have bought S8 but not iPhone. Note that S8 and iPhone are products present in the Product table.
+    Return the result table in any order
+
+
+>  select distinct buyer_id from Sales s join Product p on p.product_id = s.product_id where p.product_name = 'S8' and buyer_id not in
+    (
+      select buyer_id from Sales s join Product p on p.product_id = s.product_id
+       where p.product_name = 'iPhone'
+     );
+
+
+Q67. Write an SQL query to compute the moving average of how much the customer paid in a seven days window (i.e., current day + 6 days before). average_amount should be rounded to two decimal places.
+    Return result table ordered by visited_on in ascending order
+
+
+>  select c1.visited_on, sum(c2.amount) as amount, round(avg(c2.amount), 2) as average_amount from (select visited_on, sum(amount) as amount  from customer group by visited_on) c1
+   join (select visited_on, sum(amount) as amount from customer group by visited_on) c2 on datediff(c1.visited_on, c2.visited_on) between 0 and 6
+   group by c1.visited_on having count(c2.amount) = 7;
+
+
+Q68. Write an SQL query to find the total score for each gender on each day.Return the result table ordered by gender and day in ascending order
+
+
+>  select gender,day,SUM(score_points) OVER(PARTITION BY gender ORDER BY day) as total from Scores;
+
+
+Q69. Write an SQL query to find the start and end number of continuous ranges in the table Logs.
+     Return the result table ordered by start_id.
+
+
+>  select log_start.log_id as START_ID, min(log_end.log_id) as END_ID from 
+    (select log_id from logs where log_id - 1 not in (select * from Logs)) log_start,
+    (select log_id from logs where log_id + 1 not in (select * from Logs)) log_end
+    where log_start.log_id <= log_end.log_id group by log_start.log_id;
+
+
+Q70. Write an SQL query to find the number of times each student attended each exam.Return the result table ordered by student_id and subject_name.
+
+
+>  select a.student_id, a.student_name, b.subject_name, count(c.subject_name) as attended_exams from Students as a join Subjects as b left join Examinations as c on a.student_id = c.student_id and b.subject_name = c.subject_name
+   group by a.student_id, b.subject_name;
+
+
+Q71. Write an SQL query to find employee_id of all employees that directly or indirectly report their work to the head of the company.
+    The indirect relation between managers will not exceed three managers as the company is small.
+    Return the result table in any order.
+
+
+>  select e3.employee_id from Employees e1, Employees e2, Employees e3
+   where e1.manager_id = 1 and e2.manager_id = e1.employee_id and e3.manager_id = e2.employee_id and e3.employee_id != 1
+
+
+Q72. Write an SQL query to find for each month and country, the number of transactions and their total amount, the number of approved transactions and their total amount.
+    Return the result table in any order.
+
+
+>  select date_format(trans_date,"%Y-%m") as month, country, count(id) as trans_count,
+    sum(case when state='approved' then 1  else 0 end) as approved_count,
+    sum(amount) as trans_total_amount,
+    sum(case when state='approved' then amount  else 0 end) as approved_total_amount
+   from transactions group by month, country
+
+
+Q73. Write an SQL query to find the average daily percentage of posts that got removed after being reported as spam, rounded to 2 decimal places.
+
+
+>  select round(avg(daily_count), 2) as average_daily_percent from (select count(distinct b.post_id)/count(distinct a.post_id)*100 as daily_count
+    from actions a left join removals b on a.post_id = b.post_id where extra = 'spam' group by action_date) b
+
+
+Q74. Write an SQL query to report the fraction of players that logged in again on the day after the day they first logged in, rounded to 2 decimal places. In other words, you need to count the number of players
+    that logged in for at least two consecutive days starting from their first login date, then divide that number by the total number of players
+
+
+>  WITH CTE as ( select player_id, min(event_date) as event_start_date from Activity group by player_id )
+
+   select round((count(distinct c.player_id) / (select count(distinct player_id) from activity)),2)as fraction from CTE c JOIN Activity a on c.player_id = a.player_id
+   and datediff(c.event_start_date, a.event_date) = -1;
+
+
+
+Q75. Write an SQL query to report the fraction of players that logged in again on the day after the day they first logged in, rounded to 2 decimal places. In other words, you need to count the number of players
+      that logged in for at least two consecutive days starting from their first login date, then divide that number by the total number of players.
+
+
+>  WITH CTE as ( select player_id, min(event_date) as event_start_date from Activity group by player_id )
+
+   select round((count(distinct c.player_id) / (select count(distinct player_id) from activity)),2)as fraction from CTE c JOIN Activity a on c.player_id = a.player_id
+   and datediff(c.event_start_date, a.event_date) = -1;
+
+
+Q76. Write an SQL query to find the salaries of the employees after applying taxes. Round the salary to the
+nearest integer.
+The tax rate is calculated for each company based on the following criteria:
+● 0% If the max salary of any employee in the company is less than $1000.
+● 24% If the max salary of any employee in the company is in the range [1000, 10000] inclusive.
+● 49% If the max salary of any employee in the company is greater than $10000.
+Return the result table in any order.
+
+
+>  select company_id, employee_id, employee_name, round(salary - salary*tax, 0) as salary from
+  (
+  select *,
+  case when max(salary) over(partition by company_id) < 1000 then 0
+       when max(salary) over(partition by company_id) between 1000
+       and 10000 then 0.24
+       else 0.49 end as tax
+    from Salaries )
+
+
+Q77. Write an SQL query to evaluate the boolean expressions in Expressions table. Return the result table in any order
+
+>  select e.left_operand, e.operator, e.right_operand,
+    case
+        when e.operator = '<' then if(l.value < r.value,'true','false')
+        when e.operator = '>' then if(l.value > r.value,'true','false')
+        else if(l.value = r.value,'true','false')
+    end as value
+from expressions e 
+left join variables l on e.left_operand = l.name 
+left join variables r on e.right_operand = r.name
+
+
+Q78. A telecommunications company wants to invest in new countries. The company intends to invest in
+the countries where the average call duration of the calls in this country is strictly greater than the
+global average call duration.
+Write an SQL query to find the countries where this company can invest.
+Return the result table in any order
+
+>  select c.name as country from Person p inner join Country c on left (p.phone_number,3) = c.country_code inner join (select caller_id as id, duration from Calls 
+   union all 
+   select callee_id as id, duration from Calls) phn on p.id = phn.id group by country having avg(duration) > (select avg(duration) from Calls)
+
+
+Q79. Write a query that prints a list of employee names (i.e.: the name attribute) from the Employee table in
+    alphabetical order.
+
+>  select name from Employee order by name;
+
+
+Q80. Assume you are given the table below containing information on user transactions for particular
+    products. Write a query to obtain the year-on-year growth rate for the total spend of each product for
+    each year.
+    Output the year (in ascending order) partitioned by product id, current year's spend, previous year's
+    spend and year-on-year growth rate (percentage rounded to 2 decimal places).
+
+>  with cte as (
+select extract(year from transaction_date) as year, product_id, spend as curr_year_spend,
+lag(spend,1) over (PARTITION BY product_id) as prev_year_spend from user_transactions
+)
+select c.*, round(100*curr_year_spend/prev_year_spend-100,2) as yoy_rate from cte c
+
+
+Q81. Write a SQL query to find the number of prime and non-prime items that can be stored in the 500,000
+     square feet warehouse. Output the item type and number of items to be stocked.
+
+
+>  with t1 as(select SUM(case when item_type='prime_eligible' then square_footage end) prime_sum,
+COUNT(case when item_type='prime_eligible' then 1 end) prct,
+SUM(case wehn item_type='not_prime' then square_footage end) notprime_sum,
+COUNT(case when item_type='not_prime' then 1 end) nprct
+from inventory)
+
+select 'prime_eligible' as item_type,
+prct*(floor(500000/prime_sum)) as item_count from t1
+UNION
+select 'not_prime' as item_type,
+nprct*(floor((500000-(floor(500000/prime_sum)*prime_sum))/notprime_sum)) as item_count from t1 order by 1 desc  
+
+
+
+Q82. Assume you have the table below containing information on Facebook user actions. Write a query to
+   obtain the active user retention in July 2022. Output the month (in numerical format 1, 2, 3) and the
+   number of monthly active users (MAUs).
+
+>  with cte as (SELECT user_id, EXTRACT(month from event_date) as m_num from user_actions where EXTRACT(month from event_date) in (6,7))
+
+   select m_num as month, count(*) as monthly_active_users from (SELECT user_id, m_num, RANK() over(PARTITION BY user_id order by m_num)
+   from cte GROUP BY user_id, m_num)m where rank = 2 GROUP BY month;
+
+
+Q83. Write a query to report the median of searches made by a user. Round the median to one decimal point.
+
+>  with result as (select searches, GENERATE_SERIES(1, num_users) from search_frequency order by searches)
+
+   select PERCENTILE_CONT(0.5) WITHIN group (order by searches) from result;
+
+
+Q84. Write a query to update the Facebook advertiser's status using the daily_pay table. Advertiser is a two-column table containing the user id and their payment status based on the last payment and
+     daily_pay table has current information about their payment. Only advertisers who paid will show up this table.
+
+
+>  select coalesce(a.user_id, dp.user_id) as user_id, 
+    case when a.user_id is null then 'NEW'
+        when dp.user_id is null then 'CHURN' 
+        when a.status = 'CHURN' then 'RESURRECT'
+        else 'EXISTING' end as new_status from advertiser a full join daily_pay dp on a.user_id = dp.user_id order by 1
+
+
+
+Q85. Write a query that calculates the total time that the fleet of servers was running. The output should be in units of full days.
+   
+
+>  with result as(select server_id, status_time,session_status, lead(status_time)over(order by server_id,status_time)as end_time from server_utilization)
+  select extract( day from justify_hours(sum(end_time-status_time)))as total_uptime_days from result where session_status='start';
+
+
+Q86. Sometimes, payment transactions are repeated by accident; it could be due to user error, API failure or
+    a retry error that causes a credit card to be charged twice.
+    Using the transactions table, identify any payments made at the same merchant with the same credit
+    card for the same amount within 10 minutes of each other. Count such repeated payments.
+
+
+>  select count(distinct t1.merchant_id) as payment_count from transactions t1 join transactions t2 on
+   t1.merchant_id=t2.merchant_id and t1.credit_card_id = t2.credit_card_id and t1.amount = t2.amount 
+   where extract(epoch from (t1.transaction_timestamp-t2.transaction_timestamp)) < 600;
+
+
+Q87. Write a query to find the bad experience rate in the first 14 days for new users who signed up in June
+     2022. Output the percentage of bad experience rounded to 2 decimal places
+
+
+>  
+
+
+Q88. Write an SQL query to find the total score for each gender on each day.Return the result table ordered by gender and day in ascending order.
+     The query result format is in the following example
+
+
+>  select gender,day,SUM(score_points) over(PARTITION BY gender ORDER BY day) as total from Scores
+
+
+Q89. A telecommunications company wants to invest in new countries. The company intends to invest in the countries where the average call duration of the calls in this country is strictly greater than the
+     global average call duration.
+     Write an SQL query to find the countries where this company can invest.Return the result table in any order
+
+
+>  select c.name as country from Person p inner join Country c on left (p.phone_number,3) = c.country_code inner join (select caller_id as id, duration 
+  from Calls 
+  union all 
+  select callee_id as id, duration from Calls) phn on p.id = phn.id group by country having avg(duration) > (select avg(duration) from Calls)
+
+
+Q90. The median is the value separating the higher half from the lower half of a data sample.
+     Write an SQL query to report the median of all the numbers in the database after decompressing the
+     Numbers table. Round the median to one decimal point.
+
+
+>  SET @rowindex := -1;
+ 
+select
+   AVG(d.frequency) as Median 
+from
+   (select @rowindex:=@rowindex + 1 as rowindex,
+           demo.frequency as frequency
+    from demo
+    ORDER BY demo.frequency) as d
+WHERE
+d.rowindex IN (FLOOR(@rowindex / 2), CEIL(@rowindex / 2));
+
+
+
+Q91. Write an SQL query to report the comparison result (higher/lower/same) of the average salary of employees in a department to the company's average salary.
+     Return the result table in any order.
+
+> select pay_month,department_id, 
+    case when dept_avg > comp_avg then 'higher' when dept_avg < comp_avg then 'lower' else 'same' end comparison
+    from (
+        select  date_format(b.pay_date, '%Y-%m') pay_month, a.department_id, avg(b.amount) dept_avg,  d.comp_avg
+        from employee a 
+        inner join salary b
+            on (a.employee_id = b.employee_id) 
+        inner join (select date_format(c.pay_date, '%Y-%m') pay_month, avg(c.amount) comp_avg 
+                    from salary c 
+                    group by date_format(c.pay_date, '%Y-%m')) d 
+            on ( date_format(b.pay_date, '%Y-%m') = d.pay_month)
+     group by date_format(b.pay_date, '%Y-%m'), department_id, d.comp_avg) final
+
+
+Q92. Write an SQL query to report for each install date, the number of players that installed the game on that day, and the day one retention.
+     Return the result table in any order.
+
+
+>  select a1.event_date as install_dt, count(a1.player_id) as installs, round(count(a3.player_id) / count(a1.player_id), 2) as Day1_retention
+    from Activity a1 left join Activity a2 on a1.player_id = a2.player_id and a1.event_date > a2.event_date
+    left join Activity a3
+    on a1.player_id = a3.player_id and datediff(a3.event_date, a1.event_date) = 1 where a2.event_date is null group by a1.event_date;
+
+
+
+
+Q93. Write an SQL query to find the winner in each group.
+     Return the result table in any order.
+
+
+>  select group_id, player_id from (
+	select p.group_id, ps.player_id, sum(ps.score) as score
+	from Players p,
+	    (
+            select first_player as player_id, first_score as score
+            from Matches
+            union all
+            select second_player, second_score
+            from Matches
+	    ) ps
+	where p.player_id = ps.player_id
+	group by ps.player_id
+	order by group_id, score desc, player_id
+) top_scores
+group by group_id;
+
+
+
+Q94. A quiet student is the one who took at least one exam and did not score the high or the low score.Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not
+    return the student who has never taken any exam.
+
+
+>  select distinct Student.* from Student inner join Exam on Student.student_id = Exam.student_id
+   where student.student_id not in 
+    (
+    select e1.student_id from Exam as e1 inner join
+        (select exam_id, min(score) as min_score, max(score) as max_score from Exam
+         group by exam_id) as e2 on e1.exam_id = e2.exam_id
+        where e1.score = e2.min_score or e1.score = e2.max_score  ) 
+
+
+
+Q95. A quiet student is the one who took at least one exam and did not score the high or the low score.Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not
+     return the student who has never taken any exam.Return the result table ordered by student_id.
+
+
+>  select distinct Student.* from Student inner join Exam on Student.student_id = Exam.student_id
+   where student.student_id not in 
+    (
+    select e1.student_id from Exam as e1 inner join
+        (select exam_id, min(score) as min_score, max(score) as max_score from Exam
+         group by exam_id) as e2 on e1.exam_id = e2.exam_id
+        where e1.score = e2.min_score or e1.score = e2.max_score  ) order by student_id
+
+
+Q97. New TikTok users sign up with their emails, so each signup requires a text confirmation to activate the new user's account.
+    Write a query to find the confirmation rate of users who confirmed their signups with text messages.Round the result to 2 decimal places.
+
+>  select  ROUND(1.0 * COUNT(t.signup_action) filter (WHERE signup_action = 'Confirmed') / COUNT(t.signup_action) ,2) as confirm_rate
+   from emails as e LEFT JOIN texts as t on e.email_id = t.email_id;
+
+
+
+Q98. The table below contains information about tweets over a given period of time. Calculate the 3-day
+rolling average of tweets published by each user for each date that a tweet was posted. Output the
+user id, tweet date, and rolling averages rounded to 2 decimal places.
+Hint- Use Count and group by
+Important Assumptions:
+● Rows in this table are consecutive and ordered by date.
+● Each row represents a different day
+● A day that does not correspond to a row in this table is not counted. The most recent day is
+the next row above the current row
+
+
+>  select user_id,tweet_date, ROUND(AVG(COUNT(*)) OVER(PARTITION BY user_id ORDER BY tweet_date ROWS BETWEEN 2 PRECEDING and CURRENT ROW),2) 
+   from tweets  GROUP BY user_id, tweet_date ORDER BY user_id, tweet_date;
+
+
+
+
+Q99. Assume you are given the tables below containing information on Snapchat users, their ages, and
+their time spent sending and opening snaps. Write a query to obtain a breakdown of the time spent
+sending vs. opening snaps (as a percentage of total time spent on these activities) for each age
+group.
+Hint- Use join and case
+Output the age bucket and percentage of sending and opening snaps. Round the percentage to 2
+decimal places.
+Notes:
+● You should calculate these percentages:
+○ time sending / (time sending + time opening)
+○ time opening / (time sending + time opening)
+● To avoid integer division in percentages, multiply by 100.0 and not 100.
+
+
+>  select age_bucket,round(s_time/(s_time+o_time)*100.0,2) as send_perc, round(o_time/(s_time+o_time)*100.0,2) as open_perc from
+   (select age_bucket,SUM(CASE WHEN activity_type = 'send' then time_spent END) as s_time,SUM(CASE WHEN activity_type = 'open' then time_spent END) as o_time
+   from activities a inner join age_breakdown b on a.user_id = b.user_id group by age_bucket) as subq
+
+
+
+Q100. Write a query to return the IDs of these LinkedIn power creators in ascending order
+
+
+>  select pf.profile_id from personal_profiles pf join company_pages cp on pf.employer_id = cp.company_id where pf.followers > cp.followers order by profile_id;
+
+
+
+------------------------------------------------    SET-3    -----------------------------------------------------------------------------
+
+
+
+
+
+Q101. Write an SQL query to show the second most recent activity of each user.If the user only has one activity, return that one. A user cannot perform more than one activity at the
+      same time.Return the result table in any order
+
+>  select distinct username, activity, startDate, endDate from
+      (select u.*,rank() over (partition by username order by startDate desc) as rnk, count(activity) over (partition by username) as num
+      from UserActivity u) t where (num <> 1 and rnk = 2) or (num = 1 and rnk = 1);
+
+
+Q102. Write an SQL query to show the second most recent activity of each user.If the user only has one activity, return that one. A user cannot perform more than one activity at the
+      same time.Return the result table in any order
+
+
+>  select distinct username, activity, startDate, endDate from
+      (select u.*,rank() over (partition by username order by startDate desc) as rnk, count(activity) over (partition by username) as num
+      from UserActivity u) t where (num <> 1 and rnk = 2) or (num = 1 and rnk = 1);
+
+
+Q103. Query the Name of any student in STUDENTS who scored higher than 75 Marks. Order your output by the last three characters of each name. If two or more students both have names ending in the same
+      last three characters (i.e.: Bobby, Robby, etc.), secondary sort them by ascending ID
+
+
+>  select NAME from STUDENTS where Marks > 75 ORDER BY RIGHT(NAME, 3), ID asc;
+
+
+Q104. Write a query that prints a list of employee names (i.e.: the name attribute) for employees in Employee having a salary greater than $2000 per month who have been employees for less than 10
+     months. Sort your result by ascending employee_id.
+
+
+>  select name from Employee WHERE salary > 2000 and months < 10 ORDER BY employee_id;  
+
+
+Q105. Write a query identifying the type of each record in the TRIANGLES table using its three side lengths.
+Output one of the following statements for each record in the table:
+● Equilateral: It's a triangle with sides of equal length.
+● Isosceles: It's a triangle with sides of equal length.
+● Scalene: It's a triangle with sides of differing lengths.
+● Not A Triangle: The given values of A, B, and C don't form a triangle.
+
+
+>  select CASE
+          WHEN A + B <= C OR A + C <= B OR B + C <= A THEN 'Not A Triangle'
+          WHEN A = B AND B = C THEN 'Equilateral'
+          WHEN A = B OR B = C OR A = C THEN 'Isosceles'
+          ELSE 'Scalene'
+          END
+          from TRIANGLES;
+
+
+Q106. Samantha was tasked with calculating the average monthly salaries for all employees in the EMPLOYEES table, but did not realise her keyboard's 0 key was broken until after completing the
+     calculation. She wants your help finding the difference between her miscalculation (using salaries with any zeros removed), and the actual average salary.
+     Write a query calculating the amount of error (i.e.: actual - miscalculated average monthly salaries), and round it up to the next integer.
+
+
+> select ceil(avg(salary) - avg(replace(salary, '0', ''))) from employees;
+
+
+
+Q107.We define an employee's total earnings to be their monthly salary * months worked, and the maximum total earnings to be the maximum total earnings for any employee in the Employee table.
+     Write a query to find the maximum total earnings for all employees as well as the total number of employees who have maximum total earnings. Then print these values as 2 space-separated integers.
+
+
+> select months*salary, count(*) from employee group by months*salary order by months*salary desc limit 1;
+
+
+
+Q108.Generate the following two result sets:
+
+1. Query an alphabetically ordered list of all names in OCCUPATIONS, immediately followed by
+the first letter of each profession as a parenthetical (i.e.: enclosed in parentheses). For
+example: AnActorName(A), ADoctorName(D), AProfessorName(P), and ASingerName(S).
+Query the number of occurrences of each occupation in OCCUPATIONS. Sort the occurrences in
+ascending order, and output them in the following format:
+Level - Medium
+There are a total of [occupation_count] [occupation]s.
+
+2. where [occupation_count] is the number of occurrences of an occupation in OCCUPATIONS and
+[occupation] is the lowercase occupation name. If more than one Occupation has the same
+[occupation_count], they should be ordered alphabetically.
+Note: There will be at least two entries in the table for each type of occupation.
+Input Format
+
+
+>  select concat(name, '(', substring(occupation, 1, 1), ')') as name from occupations order by name
+
+   select concat('There are a total of', ' ', count(occupation), ' ', lower(occupation), 's.') as profession
+  from occupations group by occupation order by profession;
+
+
+
+Q109. Pivot the Occupation column in OCCUPATIONS so that each Name is sorted alphabetically and displayed underneath its corresponding Occupation. The output column headers should be Doctor,
+     Professor, Singer, and Actor, respectively.
+    Note: Print NULL when there are no more names corresponding to an occupation.
+
+
+> select Doctor, Professor, Singer, Actor from (
+  select ROW_NUMBER() OVER (PARTITION BY occupation ORDER BY name) as rn, name, occupation from  occupations) 
+  PIVOT 
+  (MAX(name) FOR occupation IN ('Doctor' as Doctor,'Professor' as Professor, 'Singer' as Singer, 'Actor' as Actor)) ORDER BY rn;
+
+
+
+Q110. Write a query to find the node type of Binary Tree ordered by the value of the node. Output one of the
+following for each node:
+● Root: If node is root node.
+● Leaf: If node is leaf node.
+● Inner: If node is neither root nor leaf node.
+
+
+>  select N, CASE
+             WHEN P IS NULL THEN 'Root'
+             WHEN N IN (SELECT P FROM BST) THEN 'Inner'
+             ELSE 'Leaf'
+             END
+             FROM BST ORDER by N;
+
+
+
+Q111. Given the table schemas below, write a query to print the company_code, founder name, total number of lead managers, total number of senior managers, total number of managers, and total number of
+    employees. Order your output by ascending company_code.
+
+
+>  select c.company_code, c.founder, COUNT(DISTINCT e.lead_manager_code), COUNT(DISTINCT e.senior_manager_code), COUNT(DISTINCT e.manager_code), COUNT(DISTINCT e.employee_code) from company c
+    JOIN employee e ON c.company_code = e.company_code GROUP BY c.company_code, c.founder ORDER BY c.company_code;
+
+
+Q112. Write a query to print all prime numbers less than or equal to 1000. Print your result on a single line,and use the ampersand () character as your separator (instead of a space).
+      For example, the output for all prime numbers <=10 would be: 2&3&5&7
+
+>  select listagg(Prime_Number,'&') within group(order by Prime_Number) from (select L Prime_Number from
+     (select Level L from Dual connect by Level <= 1000),
+     (select Level M from Dual connect by Level <= 1000)
+     where M <= L group by L having count(case when L/M = trunc(L/M) then 'Y' end) = 2 order by L);
+
+
+Q113. P(R) represents a pattern drawn by Julia in R rows. The following pattern represents P(5):
+*
+* *
+* * *
+* * * *
+* * * * *
+Write a query to print the pattern P(20).
+
+
+> DECLARE @ANE INT = 1
+   WHILE @ANE <= 20
+   BEGIN
+   PRINT REPLICATE('* ', @ANE)
+   SET @ANE = @ANE + 1)
+   END
+
+
+
+Q114. P(R) represents a pattern drawn by Julia in R rows. The following pattern represents P(5):
+* * * * *
+* * * *
+* * *
+* *
+*
+Write a query to print the pattern P(20).
+
+
+>  select SYS_CONNECT_BY_PATH(NULL, '* ') from DUAL CONNECT BY ROWNUM <= 20 ORDER BY 1 DESC;
+
+
+Q115. Query the Name of any student in STUDENTS who scored higher than 75 Marks. Order your output by the last three characters of each name. If two or more students both have names ending in the same
+     last three characters (i.e.: Bobby, Robby, etc.), secondary sort them by ascending ID.
+
+
+>  select NAME from STUDENTS where Marks > 75 ORDER BY RIGHT(NAME, 3), ID asc;
+
+
+Q116. Write a query that prints a list of employee names (i.e.: the name attribute) from the Employee table in alphabetical order.
+
+
+> selec NAME from EMPLOYEE ORDER BY name;
+
+
+Q117. Write a query that prints a list of employee names (i.e.: the name attribute) for employees in Employee having a salary greater than $2000 per month who have been employees for less than 10
+     months. Sort your result by ascending employee_id.
+
+
+>  select name from Employee where salary > 2000 and months < 10 ORDER BY employee_id;  
+
+
+Q118. Write a query identifying the type of each record in the TRIANGLES table using its three side
+lengths. Output one of the following statements for each record in the table:
+● Equilateral: It's a triangle with sides of equal length.
+● Isosceles: It's a triangle with sides of equal length.
+● Scalene: It's a triangle with sides of differing lengths.
+● Not A Triangle: The given values of A, B, and C don't form a triangle.
+
+
+>  select CASE
+          WHEN A + B <= C OR A + C <= B OR B + C <= A THEN 'Not A Triangle'
+          WHEN A = B AND B = C THEN 'Equilateral'
+          WHEN A = B OR B = C OR A = C THEN 'Isosceles'
+          ELSE 'Scalene'
+          END FROM TRIANGLES;
+
+
+Q119. Assume you are given the table below containing information on user transactions for
+particular products. Write a query to obtain the year-on-year growth rate for the total spend of each
+product for each year.
+Output the year (in ascending order) partitioned by product id, current year's spend, previous year's
+spend and year-on-year growth rate (percentage rounded to 2 decimal places).
+
+
+>  with result as (
+    select extract(year from transaction_date) as year, product_id, spend as curr_year_spend,
+    lag(spend,1) over (PARTITION BY product_id) as prev_year_spend from user_transactions
+    )
+    select c.*, round(100*curr_year_spend/prev_year_spend-100,2) as yoy_rate from result c
+
+
+Q120. Amazon wants to maximise the number of items it can stock in a 500,000 square feet
+warehouse. It wants to stock as many prime items as possible, and afterwards use the remaining
+square footage to stock the most number of non-prime items.
+Write a SQL query to find the number of prime and non-prime items that can be stored in the 500,000
+square feet warehouse. Output the item type and number of items to be stocked.
+
+
+>  with cte_1 as (select item_type , sum(square_footage) as sum_amt, count(item_type) as count_num, round(500000/sum(square_footage),-2) as per, round(count(item_type) * (500000/sum(square_footage)),-2) as item_count, 
+  count(item_type)*(round((lead( 500000- (round((500000/sum(square_footage)),-2) * sum(square_footage)))over(order by item_type)) /sum(square_footage))) as item_count_1 from inventory group by 1)
+
+   select item_type , item_count_1 from cte_1 where item_type = 'not_prime'
+   UNION select item_type , item_count from cte_1 where item_type = 'prime_eligible' order by 2 desc;
+
+
+Q121. Assume you have the table below containing information on Facebook user actions. Write a
+query to obtain the active user retention in July 2022. Output the month (in numerical format 1, 2, 3)
+and the number of monthly active users (MAUs).
+
+
+>  WITH result as (SELECT DISTINCT EXTRACT(month from event_date) as month, user_id  FROM user_actions
+   where (event_type,user_id) IN (select event_type,user_id FROM user_actions where EXTRACT(month from event_date)=6) and
+   (event_type,user_id) IN (SELECT event_type,user_id FROM user_actions where EXTRACT(month from event_date)=7))
+   SELECT MAX(result.month) as month,COUNT(distinct result.user_id) as monthly_active_users FROM result
+
+
+Q122. Write a query to report the median of searches made by a user. Round the median to one decimal point.
+
+
+>  with result as (select searches, GENERATE_SERIES(1, num_users) from search_frequency order by searches)
+
+   select PERCENTILE_CONT(0.5) WITHIN group (order by searches) from result;
+
+
+Q123. Write a query to update the Facebook advertiser's status using the daily_pay table. Advertiser is
+a two-column table containing the user id and their payment status based on the last payment and
+daily_pay table has current information about their payment. Only advertisers who paid will show up in
+this table.
+Output the user id and current payment status sorted by the user id.
+
+>  select coalesce(a.user_id, dp.user_id) as user_id, 
+    case when a.user_id is null then 'NEW'
+        when dp.user_id is null then 'CHURN' 
+        when a.status = 'CHURN' then 'RESURRECT'
+        else 'EXISTING' end as new_status
+    from advertiser a full join daily_pay dp on a.user_id = dp.user_id order by 1
+
+
+Q124. Amazon Web Services (AWS) is powered by fleets of servers. Senior management has
+requested data-driven solutions to optimise server usage.
+Write a query that calculates the total time that the fleet of servers was running. The output should be
+in units of full days.
+
+
+>  with result as(select server_id,status_time,session_status,lead(status_time)over(order by server_id,status_time)as end_time from server_utilization)
+  select extract( day from justify_hours(sum(end_time-status_time)))as total_uptime_days from result where session_status='start';
+
+
+Q125.  Sometimes, payment transactions are repeated by accident; it could be due to user error, API
+failure or a retry error that causes a credit card to be charged twice.
+Using the transactions table, identify any payments made at the same merchant with the same credit
+card for the same amount within 10 minutes of each other. Count such repeated payments.
+
+
+>  with result as( 
+    select (case when amount = lag(amount,1) over
+    (partition by credit_card_id order by transaction_id) then 
+    lag(transaction_timestamp,1) over (partition by credit_card_id
+    order by transaction_id) - transaction_timestamp end) as timediff from transactions
+    )
+
+    select count(*) as payment_count from result where extract(hour from timediff) = 0
+    and extract(minute from timediff) >= -10
+
+
+
+Q127. Write an SQL query to find the total score for each gender on each day.
+Return the result table ordered by gender and day in ascending order.
+The query result format is in the following example.
+
+
+>  select gender,day,SUM(score_points) OVER(PARTITION BY gender ORDER BY day) as total from Scores
+    
+
+Q128. A telecommunications company wants to invest in new countries. The company intends to invest in
+the countries where the average call duration of the calls in this country is strictly greater than the
+global average call duration.
+Write an SQL query to find the countries where this company can invest.
+Return the result table in any order
+
+
+>   select c.name as country from Person p inner join Country c on left (p.phone_number,3) = c.country_code inner join (select caller_id as id, duration 
+  from Calls 
+  union all 
+  select callee_id as id, duration from Calls) phn on p.id = phn.id group by country having avg(duration) > (select avg(duration) from Calls)
+
+
+
+Q129. The median is the value separating the higher half from the lower half of a data sample.Write an SQL query to report the median of all the numbers in the database after decompressing the
+      Numbers table. Round the median to one decimal point.The query result format is in the following example
+
+
+>  SET @rowindex := -1;
+ 
+select
+   AVG(d.frequency) as Median 
+from
+   (select @rowindex:=@rowindex + 1 as rowindex,
+           demo.frequency as frequency
+    from demo
+    ORDER BY demo.frequency) as d
+WHERE
+d.rowindex IN (FLOOR(@rowindex / 2), CEIL(@rowindex / 2));
+
+
+
+Q130. Write an SQL query to report the comparison result (higher/lower/same) of the average salary of employees in a department to the company's average salary.
+     Return the result table in any order.
+
+
+> select pay_month,department_id, 
+    case when dept_avg > comp_avg then 'higher' when dept_avg < comp_avg then 'lower' else 'same' end comparison
+    from (
+        select  date_format(b.pay_date, '%Y-%m') pay_month, a.department_id, avg(b.amount) dept_avg,  d.comp_avg
+        from employee a 
+        inner join salary b
+            on (a.employee_id = b.employee_id) 
+        inner join (select date_format(c.pay_date, '%Y-%m') pay_month, avg(c.amount) comp_avg 
+                    from salary c 
+                    group by date_format(c.pay_date, '%Y-%m')) d 
+            on ( date_format(b.pay_date, '%Y-%m') = d.pay_month)
+     group by date_format(b.pay_date, '%Y-%m'), department_id, d.comp_avg) final
+
+
+Q131. Write an SQL query to report for each install date, the number of players that installed the game on that day, and the day one retention.
+
+>  select a1.event_date as install_dt, count(a1.player_id) as installs, round(count(a3.player_id) / count(a1.player_id), 2) as Day1_retention
+    from Activity a1 left join Activity a2 on a1.player_id = a2.player_id and a1.event_date > a2.event_date
+    left join Activity a3
+    on a1.player_id = a3.player_id and datediff(a3.event_date, a1.event_date) = 1 where a2.event_date is null group by a1.event_date;
+
+
+Q132. Write an SQL query to find the winner in each group.Return the result table in any order.
+
+
+>  select group_id, player_id from (
+	select p.group_id, ps.player_id, sum(ps.score) as score
+	from Players p,
+	    (
+            select first_player as player_id, first_score as score
+            from Matches
+            union all
+            select second_player, second_score
+            from Matches
+	    ) ps
+	where p.player_id = ps.player_id
+	group by ps.player_id
+	order by group_id, score desc, player_id
+) top_scores
+group by group_id;
+
+
+Q133. Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not return the student who has never taken any exam.
+Return the result table ordered by student_id.
+
+>  select distinct Student.* from Student inner join Exam on Student.student_id = Exam.student_id
+   where student.student_id not in 
+    (
+    select e1.student_id from Exam as e1 inner join
+        (select exam_id, min(score) as min_score, max(score) as max_score from Exam
+         group by exam_id) as e2 on e1.exam_id = e2.exam_id
+        where e1.score = e2.min_score or e1.score = e2.max_score  ) 
+
+
+Q134. Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not return the student who has never taken any exam.
+Return the result table ordered by student_id.
+
+>  select distinct Student.* from Student inner join Exam on Student.student_id = Exam.student_id
+   where student.student_id not in 
+    (
+    select e1.student_id from Exam as e1 inner join
+        (select exam_id, min(score) as min_score, max(score) as max_score from Exam
+         group by exam_id) as e2 on e1.exam_id = e2.exam_id
+        where e1.score = e2.min_score or e1.score = e2.max_score  ) 
+
+        
+
+
+Q135. Write an SQL query to show the second most recent activity of each user.If the user only has one activity, return that one. A user cannot perform more than one activity at the
+     same time.Return the result table in any order.
+
+
+>  select * from UserActivity where (username, startDate) in (
+    select u1.username, max(u1.startDate) from UserActivity u1
+        where (u1.username, u1.startDate) not in (
+            select u2.username, max(u2.startDate) from UserActivity u2
+                group by u2.username
+                having count(u2.username) > 1
+        )
+        group by u1.username
+    );
+
+Q136. Write an SQL query to show the second most recent activity of each user.If the user only has one activity, return that one. A user cannot perform more than one activity at the
+     same time.Return the result table in any order.
+
+
+>  select * from UserActivity where (username, startDate) in (
+    select u1.username, max(u1.startDate) from UserActivity u1
+        where (u1.username, u1.startDate) not in (
+            select u2.username, max(u2.startDate) from UserActivity u2
+                group by u2.username
+                having count(u2.username) > 1
+        )
+        group by u1.username
+    );    
+
+
+Q137. Write a query calculating the amount of error (i.e.: actual - miscalculated average monthly salaries),and round it up to the next integer.
+
+
+> select ceil(avg(salary) - avg(replace(salary, '0', ''))) from employees;
+
+
+Q138. We define an employee's total earnings to be their monthly salary * months worked, and the maximum total earnings to be the maximum total earnings for any employee in the Employee table.
+     Write a query to find the maximum total earnings for all employees as well as the total number of employees who have maximum total earnings. Then print these values as 2 space-separated integers
+
+
+>  select months*salary, count(*) from employee group by months*salary order by months*salary desc limit 1;
+
+
+Q139. Generate the following two result sets:
+1. Query an alphabetically ordered list of all names in OCCUPATIONS, immediately followed by
+the first letter of each profession as a parenthetical (i.e.: enclosed in parentheses). For
+example: AnActorName(A), ADoctorName(D), AProfessorName(P), and ASingerName(S).
+Query the number of occurrences of each occupation in OCCUPATIONS. Sort the occurrences in
+ascending order, and output them in the following format:
+Level - Medium
+There are a total of [occupation_count] [occupation]s.
+2. where [occupation_count] is the number of occurrences of an occupation in OCCUPATIONS and
+[occupation] is the lowercase occupation name. If more than one Occupation has the same
+[occupation_count], they should be ordered alphabetically.
+Note: There will be at least two entries in the table for each type of occupation.
+Input Format
+
+
+>  select concat(name, '(', substring(occupation, 1, 1), ')') as name from occupations order by name
+
+   select concat('There are a total of', ' ', count(occupation), ' ', lower(occupation), 's.') as profession
+  from occupations group by occupation order by profession;
+
+
+Q140. Pivot the Occupation column in OCCUPATIONS so that each Name is sorted alphabetically and
+displayed underneath its corresponding Occupation. The output column headers should be Doctor,
+Professor, Singer, and Actor, respectively.
+
+> select Doctor, Professor, Singer, Actor from (
+  select ROW_NUMBER() OVER (PARTITION BY occupation ORDER BY name) as rn, name, occupation from  occupations) 
+  PIVOT 
+  (MAX(name) FOR occupation IN ('Doctor' as Doctor,'Professor' as Professor, 'Singer' as Singer, 'Actor' as Actor)) ORDER BY rn;
+
+
+Q141. Write a query to find the node type of Binary Tree ordered by the value of the node. Output one of the
+following for each node:
+● Root: If node is root node.
+● Leaf: If node is leaf node.
+● Inner: If node is neither root nor leaf node.
+
+
+>  select N, CASE
+             WHEN P IS NULL THEN 'Root'
+             WHEN N IN (SELECT P FROM BST) THEN 'Inner'
+             ELSE 'Leaf'
+             END
+             FROM BST ORDER by N;
+
+
+Q142. Given the table schemas below, write a query to print the company_code, founder name, total number
+of lead managers, total number of senior managers, total number of managers, and total number of
+employees. Order your output by ascending company_code.
+
+
+>  select c.company_code, c.founder, COUNT(DISTINCT e.lead_manager_code), COUNT(DISTINCT e.senior_manager_code), COUNT(DISTINCT e.manager_code), COUNT(DISTINCT e.employee_code) from company c
+    JOIN employee e ON c.company_code = e.company_code GROUP BY c.company_code, c.founder ORDER BY c.company_code;
+
+
+Q143. Two pairs (X1, Y1) and (X2, Y2) are said to be symmetric pairs if X1 = Y2 and X2 = Y1.
+Write a query to output all such symmetric pairs in ascending order by the value of X. List the rows
+such that X1 ≤ Y1.
+
+
+> select f1.X, f1.Y from Functions as f1 where f1.X = f1.Y and
+    (select COUNT(*) from Functions where X = f1.X and Y = f1.Y) > 1
+    UNION
+    select f1.X, f1.Y from Functions as f1 where EXISTS(select X, Y from Functions where f1.X = Y and f1.Y = X and f1.X < X) ORDER BY X;
+
+
+Q144. Write a query to output the names of those students whose best friends got offered a higher salary
+than them. Names must be ordered by the salary amount offered to the best friends. It is guaranteed
+that no two students get the same salary offer.
+
+
+>  select S1.Name
+    from Students s1 
+    inner join Packages p1 on s1.Id = p1.Id
+    inner join Friends f on s1.id = f.Id
+    inner join Students s2 on f.Friend_Id = s2.Id
+    inner join Packages p2 on s2.id = p2.Id
+    where p1.Salary < p2.Salary
+    order by p2.Salary 
+
+
+Q145. Julia just finished conducting a coding contest, and she needs your help assembling the leaderboard!
+Write a query to print the respective hacker_id and name of hackers who achieved full scores for more
+than one challenge. Order your output in descending order by the total number of challenges in which
+the hacker earned a full score. If more than one hacker received full scores in the same number of
+challenges, then sort them by ascending hacker_id.
+
+>  select h.hacker_id, h.name from Submissions as s join Hackers as h on s.hacker_id = h.hacker_id 
+    join Challenges as c on s.challenge_id = c.challenge_id
+    join Difficulty as d on c.Difficulty_level = d.Difficulty_level
+    where s.score = d.score 
+    group by h.hacker_id, h.name 
+    having count(*) > 1
+    order by count(*) desc, h.hacker_id;
+
+
+Q146. Write a query to output the start and end dates of projects listed by the number of days it took to
+complete the project in ascending order. If there is more than one project that have the same number
+of completion days, then order by the start date of the project.
+
+
+>  select Start_Date, min(End_Date) from 
+  (select Start_Date from Projects where Start_Date NOT IN (select End_Date from Projects)) a ,
+  (select End_Date from Projects where End_Date NOT IN (select Start_Date from Projects)) b
+  where Start_Date < End_Date GROUP BY Start_Date ORDER BY DATEDIFF(min(End_Date), Start_Date) asc, Start_Date asc;
+
+
+Q147. In an effort to identify high-value customers, Amazon asked for your help to obtain data about users
+who go on shopping sprees. A shopping spree occurs when a user makes purchases on 3 or more
+consecutive days.
+List the user IDs who have gone on at least 1 shopping spree in ascending order.
+
+
+>  WITH cte AS ( SELECT *, LEAD(date_diff, 1) OVER(PARTITION BY user_id ORDER BY transaction_date) - LEAD(date_diff, 0) OVER(PARTITION BY user_id
+  ORDER BY transaction_date )AS 'diff'
+
+  FROM (SELECT *, DATEDIFF(LEAD(transaction_date, 1) OVER(PARTITION BY user_id ORDER BY transaction_date),LEAD(transaction_date, 0) OVER(
+  PARTITION BY user_id ORDER BY transaction_date) ) AS 'date_diff'
+  FROM mytable ) sub),
+  cte2 as () SELECT user_1id,date_diff,diff,COUNT(date_diff),COUNT(diff) FROM cte GROUP BY user_id, date_diff, diff HAVING COUNT (date_diff) >= 2AND date_diff = 1
+  OR diff = 0)
+   SELECT user_1id FROM cte2;
+
+
+
+
+Q148. You are given a table of PayPal payments showing the payer, the recipient, and the amount paid. A
+two-way unique relationship is established when two people send money back and forth. Write a
+query to find the number of two-way unique relationships in this data.
+Assumption:
+● A payer can send money to the same recipient multiple times.
+
+>  WITH T1 AS (select PAYER_ID,RECIPIENT_ID from PAYMENTS 
+   INTERSECT
+   select RECIPIENT_ID,PAYER_ID from PAYMENTS)
+
+   select COUNT(PAYER_ID)/2 AS UNIQUE_RELATIONSHIPS from T1;
+
+
+Q149. Assume you are given the table below on user transactions. Write a query to obtain the list of
+customers whose first transaction was valued at $50 or more. Output the number of users.
+Clarification:
+● Use the transaction_date field to determine which transaction should be labeled as the first
+for each user.
+● Use a specific function (we can't give too much away!) to account for scenarios where a user
+had multiple transactions on the same day, and one of those was the first
+
+>  WITH purchase_rank AS (
+         select user_id, spend,
+             RANK() OVER 
+                 (PARTITION BY user_id ORDER BY transaction_date ASC) as rank
+             from user_transactions u
+     )
+
+     select 
+         user_id
+     from 
+         purchase_rank
+     where rank = 1 AND spend >= 50.00
+
+
+Q150. Assume you are given the table below containing measurement values obtained from a sensor over
+several days. Measurements are taken several times within a given day.
+Write a query to obtain the sum of the odd-numbered and even-numbered measurements on a
+particular day, in two different columns.
+
+
+>  with result as 
+(select measurement_time::date measurement_day, measurement_value, 
+row_number() over(partition by measurement_time::date order by measurement_time) rownum
+from measurements) 
+
+select measurement_day,
+sum(case when rownum % 2 = 1 then measurement_value else 0 end) odd_sum,
+sum(case when rownum % 2 = 0 then measurement_value else 0 end) even_sum 
+from result 
+group by measurement_day
+order by measurement_day
+
+
+
+Q151. In an effort to identify high-value customers, Amazon asked for your help to obtain data about users
+who go on shopping sprees. A shopping spree occurs when a user makes purchases on 3 or more
+consecutive days.
+List the user IDs who have gone on at least 1 shopping spree in ascending order
+
+>  WITH cte AS ( SELECT *, LEAD(date_diff, 1) OVER(PARTITION BY user_id ORDER BY transaction_date) - LEAD(date_diff, 0) OVER(PARTITION BY user_id
+  ORDER BY transaction_date )AS 'diff'
+
+  FROM (SELECT *, DATEDIFF(LEAD(transaction_date, 1) OVER(PARTITION BY user_id ORDER BY transaction_date),LEAD(transaction_date, 0) OVER(
+  PARTITION BY user_id ORDER BY transaction_date) ) AS 'date_diff'
+  FROM mytable ) sub),
+  cte2 as () SELECT user_1id,date_diff,diff,COUNT(date_diff),COUNT(diff) FROM cte GROUP BY user_id, date_diff, diff HAVING COUNT (date_diff) >= 2AND date_diff = 1
+  OR diff = 0)
+   SELECT user_1id FROM cte2;
+
+
+
+Q153. Google marketing managers are analysing the performance of various advertising accounts over the
+last month. They need your help to gather the relevant data.
+Write a query to calculate the return on ad spend (ROAS) for each advertiser across all ad campaigns.
+Round your answer to 2 decimal places, and order your output by the advertiser_id.
+
+>  select advertisment_id,round(avg(revenue/spend),2) from ad_campaigns;
+
+
+Q154. Write a query that shows the following data for each compensation outlier: employee ID, salary, and
+whether they are potentially overpaid or potentially underpaid
+
+
+>  WITH payout AS ( SELECT employee_1id,salary,title,
+   (AVG(salary) OVER (PARTITION BY title)) * 2 AS double_average,
+   (AVG(salary) OVER (PARTITION BY title)) / 2 AS half_average
+   FROM employee_pay)
+
+   SELECT employee_1id,salary,CASE WHEN salary > double_average THEN WHEN salary < half_average THEN
+   END AS outlier_status
+   FROM payout WHERE salary > double_average OR salary < half_average;
+
+
+Q155. You are given a table of PayPal payments showing the payer, the recipient, and the amount paid. A
+two-way unique relationship is established when two people send money back and forth. Write a
+query to find the number of two-way unique relationships in this data.
+Assumption:
+● A payer can send money to the same recipient multiple times
+
+
+>  WITH T1 AS (select PAYER_ID,RECIPIENT_ID from PAYMENTS 
+   INTERSECT
+   select RECIPIENT_ID,PAYER_ID from PAYMENTS)
+
+   select COUNT(PAYER_ID)/2 AS UNIQUE_RELATIONSHIPS from T1;
+
+
+
+Q156. Assume you are given the table below containing information on user purchases. Write a query to
+obtain the number of users who purchased the same product on two or more different days. Output
+the number of unique users.
+PS. On 26 Oct 2022, we expanded the purchases data set, thus the official output may vary from before.
+
+>select COUNT(*)
+from
+(
+    select user_id
+    from transactions
+    GROUP BY user_id
+    HAVING COUNT(DISTINCT DATE(created_at)) > 1
+) t;
+
+
+Q158. Assume you are given the table below containing information on Amazon customers and their spend
+on products belonging to various categories. Identify the top two highest-grossing products within
+each category in 2022. Output the category, product, and total spend.
+
+>  select y.category as category,y.product as product,y.sum as total_spend from
+   (
+   select * , rank () over (PARTITION BY category order by sum desc) as rank from
+   (
+   select category, product, sum(spend) as sum from product_spend 
+   where transaction_date > '12/31/2021'
+   group by category, product  order by category 
+   ) x
+   ) y
+   where y.rank <=2
