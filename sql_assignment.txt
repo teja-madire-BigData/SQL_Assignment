@@ -1298,6 +1298,25 @@ card for the same amount within 10 minutes of each other. Count such repeated pa
 
     select count(*) as payment_count from result where extract(hour from timediff) = 0
     and extract(minute from timediff) >= -10
+    
+    
+    
+ Q26.  Write a query to find the bad experience rate in the first 14 days for new users who signed up in June
+       2022. Output the percentage of bad experience rounded to 2 decimal places.
+
+>
+select * from orders6;
+select * from customer5;
+select * from trips;
+with cte as(
+select o.customer_id,o.status,c.signup_timestamp,o.order_timestamp
+from orders6 o inner join  trips t on o.trip_id=t.trip_id 
+inner join customer5 c on c.customer_id=o.customer_id
+where extract(year from c.signup_timestamp)=2022 and month(c.signup_timestamp)=6 and datediff(o.order_timestamp,c.signup_timestamp)<=14
+)
+select round((100.0*count(case when status in('completed incorrectly','never received') then 1 else null end)/count(customer_id)),2)
+as bad_experience_pct
+from cte;
 
 
 
@@ -1653,6 +1672,24 @@ List the user IDs who have gone on at least 1 shopping spree in ascending order
 
 
 
+Q152. The Airbnb Booking Recommendations team is trying to understand the "substitutability" of two
+      rentals and whether one rental is a good substitute for another. They want you to write a query to find
+      the unique combination of two Airbnb rentals with the same exact amenities offered.
+      Output the count of the unique combination of Airbnb rentals.
+
+>  select * from rental_amenities;
+
+with cte as(
+select rental_id,group_concat(amentity order by amentity) as amentities
+from rental_amenities
+group by rental_id)
+select count(*) as matching_airbnb from(
+select amentities,count(distinct amentities) as gp_match
+from cte
+group by amentities having count(*)>1)a;
+
+
+
 Q153. Google marketing managers are analysing the performance of various advertising accounts over the
 last month. They need your help to gather the relevant data.
 Write a query to calculate the return on ad spend (ROAS) for each advertiser across all ad campaigns.
@@ -1704,6 +1741,23 @@ from
     HAVING COUNT(DISTINCT DATE(created_at)) > 1
 ) t;
 
+Q157.  Say you have access to all the transactions for a given merchant account. Write a query to print the
+      cumulative balance of the merchant account at the end of each day, with the total balance reset back
+      to zero at the end of the month. Output the transaction date and cumulative balance.
+
+>  select * from transactions5;
+
+with cte as(
+select transaction_id,type,transaction_date,
+	case when type='withdrawal' then  -1*amount
+    else amount end as amount 
+    from transactions5
+    )
+ select transaction_date,round(sum(amount),2) as balance
+ from cte
+ group by day(transaction_date)
+ order by date(transaction_date);
+
 
 Q158. Assume you are given the table below containing information on Amazon customers and their spend
 on products belonging to various categories. Identify the top two highest-grossing products within
@@ -1719,3 +1773,21 @@ each category in 2022. Output the category, product, and total spend.
    ) x
    ) y
    where y.rank <=2
+
+
+Q159. Facebook is analysing its user signup data for June 2022. Write a query to generate the churn rate by
+      week in June 2022. Output the week number (1, 2, 3, 4, ...) and the corresponding churn rate rounded
+      to 2 decimal places.
+      For example, week number 1 represents the dates from 30 May to 5 Jun, and week 2 is from 6 Jun to 12 Jun.
+
+>  select * from users4;
+
+with cte as(
+select user_id,signup_date,last_login,
+WEEK(signup_date,6) - WEEK(DATE_SUB(signup_date, INTERVAL DAYOFMONTH(signup_date)-1 DAY),6)+1 as signup_week,
+	   case when datediff(last_login,signup_date)<28 then 1
+       else 0 end as chk
+       from users4)
+       select signup_week,round((100.0*sum(chk)/count(chk)),2) as churn_rate
+       from cte
+       group by signup_week;
